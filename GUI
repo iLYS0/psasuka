@@ -1,0 +1,143 @@
+classdef app1 < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure    matlab.ui.Figure
+        Label_4     matlab.ui.control.Label
+        DlinaBalki  matlab.ui.control.NumericEditField
+        Label_2     matlab.ui.control.Label
+        UITable     matlab.ui.control.Table
+        Uzli        matlab.ui.control.NumericEditField
+        Label       matlab.ui.control.Label
+        UIAxes      matlab.ui.control.UIAxes
+    end
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Value changed function: DlinaBalki
+        function DlinaBalkiValueChanged(app, event)
+            app.UIAxes.XLim=[0,app.DlinaBalki.Value];   % задаю ось x на величину длины балки 
+            X = (0:0.01:app.DlinaBalki.Value);          % задаю размерность 
+            Y = zeros(size(X));                         % пофигу на Y
+            plot(app.UIAxes,X,Y,'LineWidth', 2,'Color','k');          % рисую балку 
+            app.UIAxes.XLim = ([-0.025*app.DlinaBalki.Value, app.DlinaBalki.Value + 0.025*app.DlinaBalki.Value]);     % меняю масштаб 
+            app.Uzli.Visible = "on";
+        end
+
+        % Value changed function: Uzli
+        function UzliValueChanged(app, event)
+            U1 = 1:1:app.Uzli.Value;
+            l = zeros (app.Uzli.Value, 1);
+            t = zeros (app.Uzli.Value, 1);
+            o = zeros (app.Uzli.Value, 1);
+            f = zeros (app.Uzli.Value, 1);
+
+            app.UITable.ColumnFormat = ({[] [] {'Опора' 'Нагрузка'} {'ШП' 'НШП' 'Заделка' 'ВШ'} {'Сила' 'Распред нагр' 'момент'}});
+
+           
+            app.UIAxes.XLim=[0,app.DlinaBalki.Value];
+            X = (0:0.01:app.DlinaBalki.Value);
+            Y = zeros(size(X));
+            p = plot(app.UIAxes,X,Y,'LineWidth', 2,'Color','k');            
+            app.UIAxes.XLim = ([-0.025*app.DlinaBalki.Value, app.DlinaBalki.Value + 0.025*app.DlinaBalki.Value]);            
+            app.UITable.Visible = 'on';
+            app.UITable.Data = [U1' l t o f];
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 1116 777];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.UIFigure);
+            title(app.UIAxes, 'Title')
+            xlabel(app.UIAxes, 'X')
+            ylabel(app.UIAxes, 'Y')
+            zlabel(app.UIAxes, 'Z')
+            app.UIAxes.Position = [578 674 531 104];
+
+            % Create Label
+            app.Label = uilabel(app.UIFigure);
+            app.Label.HorizontalAlignment = 'right';
+            app.Label.Position = [33 674 121 22];
+            app.Label.Text = 'Количество участков';
+
+            % Create Uzli
+            app.Uzli = uieditfield(app.UIFigure, 'numeric');
+            app.Uzli.Limits = [1 Inf];
+            app.Uzli.ValueChangedFcn = createCallbackFcn(app, @UzliValueChanged, true);
+            app.Uzli.FontColor = [0.6353 0.0784 0.1843];
+            app.Uzli.Visible = 'off';
+            app.Uzli.Position = [169 674 100 22];
+            app.Uzli.Value = 1;
+
+            % Create UITable
+            app.UITable = uitable(app.UIFigure);
+            app.UITable.ColumnName = {'Номер узла'; 'Расстояние от левого края'; 'Тип узла'; 'Тип опоры'; 'Тип нагрузки'};
+            app.UITable.RowName = {};
+            app.UITable.ColumnEditable = true;
+            app.UITable.Visible = 'off';
+            app.UITable.Position = [33 201 637 446];
+
+            % Create Label_2
+            app.Label_2 = uilabel(app.UIFigure);
+            app.Label_2.HorizontalAlignment = 'right';
+            app.Label_2.Position = [41 732 78 22];
+            app.Label_2.Text = 'Длина балки';
+
+            % Create DlinaBalki
+            app.DlinaBalki = uieditfield(app.UIFigure, 'numeric');
+            app.DlinaBalki.Limits = [0 Inf];
+            app.DlinaBalki.ValueChangedFcn = createCallbackFcn(app, @DlinaBalkiValueChanged, true);
+            app.DlinaBalki.Position = [134 732 126 22];
+
+            % Create Label_4
+            app.Label_4 = uilabel(app.UIFigure);
+            app.Label_4.BackgroundColor = [1 0 1];
+            app.Label_4.FontSize = 20;
+            app.Label_4.FontWeight = 'bold';
+            app.Label_4.FontAngle = 'italic';
+            app.Label_4.FontColor = [0 1 1];
+            app.Label_4.Visible = 'off';
+            app.Label_4.Position = [145 133 408 39];
+            app.Label_4.Text = 'Минимально задаваемый размер - 1 см';
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = app1
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
